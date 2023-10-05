@@ -43,12 +43,12 @@ resource "azurerm_virtual_machine" "elastic" {
       type     = "ssh"
       user     = "${var.ssh_user}"
       host = "weu-elk-elastic${count.index}"
-      private_key = "${file("${var.ssh_privkey_location}")}"
+      private_key = tls_private_key.ssh-key.private_key_openssh
       agent    = false
     # Using Jumpbox for accessing VMs as I don't have VPN solution for these networks in test subscription
       bastion_user     = "${var.ssh_user}"
       bastion_host     = "${data.azurerm_public_ip.jumpbox.ip_address}"
-      bastion_private_key = "${file("${var.ssh_privkey_location}")}"
+      bastion_private_key = tls_private_key.ssh-key.private_key_openssh
       timeout = "6m"
     }
   }
@@ -98,7 +98,7 @@ resource "azurerm_virtual_machine_extension" "elastic" {
 
   settings = <<SETTINGS
     {
-        "commandToExecute": "curl -L https://www.opscode.com/chef/install.sh | sudo bash; chef-solo --chef-license accept-silent -c /tmp/chef/solo.rb -o elk-stack::repo-setup,elk-stack::elastic,elk-stack::monitoring"
+        "commandToExecute": "curl -L https://omnitruck.chef.io/install.sh | sudo bash; chef-solo --chef-license accept-silent -c /tmp/chef/solo.rb -o elk-stack::repo-setup,elk-stack::elastic,elk-stack::monitoring"
     }
 SETTINGS
 }

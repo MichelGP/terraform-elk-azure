@@ -29,12 +29,12 @@ resource "azurerm_virtual_machine" "logstash" {
         type     = "ssh"
         user     = "${var.ssh_user}"
         host = "weu-elk-logstash1"
-        private_key = "${file("${var.ssh_privkey_location}")}"
+        private_key = tls_private_key.ssh-key.private_key_openssh
         agent    = false
       #  key_file = "${file("~/.ssh/id_rsa")}"
         bastion_user     = "${var.ssh_user}"
         bastion_host     = "${data.azurerm_public_ip.jumpbox.ip_address}"
-        bastion_private_key = "${file("${var.ssh_privkey_location}")}"
+        bastion_private_key = tls_private_key.ssh-key.private_key_openssh
         timeout = "6m"
       }
     }
@@ -81,7 +81,7 @@ resource "azurerm_virtual_machine_extension" "logstash" {
 
   settings = <<SETTINGS
     {
-        "commandToExecute": "curl -L https://www.opscode.com/chef/install.sh | sudo bash; chef-solo --chef-license accept-silent -c /tmp/chef/solo.rb -o elk-stack::repo-setup,elk-stack::logstash,elk-stack::monitoring"
+        "commandToExecute": "curl -L https://omnitruck.chef.io/install.sh | sudo bash; chef-solo --chef-license accept-silent -c /tmp/chef/solo.rb -o elk-stack::repo-setup,elk-stack::logstash,elk-stack::monitoring"
     }
 SETTINGS
 }

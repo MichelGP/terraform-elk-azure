@@ -3,7 +3,7 @@
 path.data: /var/lib/elasticsearch
 path.logs: /var/log/elasticsearch
 network.host: <%= node["ipaddress"] %>
-cluster.name: martin-development
+cluster.name: michel-development
 node.name: ${HOSTNAME}
 # Not ideal solution, this hosts list should be fully automated - using this for proof-of-concept
 discovery.seed_hosts: ["weu-elk-elastic0", "weu-elk-elastic1", "weu-elk-elastic2"]
