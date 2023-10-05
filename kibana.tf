@@ -33,12 +33,11 @@ resource "azurerm_network_interface" "kibana" {
   name                = "weu-elk-kibana1"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
-  network_security_group_id = "${azurerm_network_security_group.kibana.id}"
 
   ip_configuration {
     name                          = "weu-elk-kibana1"
     subnet_id                     = "${azurerm_subnet.network.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.kibana.id}"
 
   }
@@ -52,7 +51,7 @@ resource "azurerm_virtual_machine" "kibana" {
   network_interface_ids = ["${azurerm_network_interface.kibana.id}"]
   vm_size               = "Standard_A2_v2"
   delete_os_disk_on_termination = true
-  depends_on            = ["azurerm_virtual_machine.jumpbox", "azurerm_virtual_machine.elastic"]
+  depends_on            = [azurerm_virtual_machine.jumpbox,azurerm_virtual_machine.elastic]
 # Upload Chef cookbook/recipes
   provisioner "file" {
     source      = "chef"
@@ -93,7 +92,7 @@ resource "azurerm_virtual_machine" "kibana" {
     disable_password_authentication = true
     ssh_keys {
       path     = "/home/${var.ssh_user}/.ssh/authorized_keys"
-      key_data = "${file("${var.ssh_pubkey_location}")}"
+      key_data = tls_private_key.ssh-key.public_key_openssh
     }
   }
 
@@ -105,13 +104,11 @@ resource "azurerm_virtual_machine" "kibana" {
 # Install chef-solo, start chef bootstrap
 resource "azurerm_virtual_machine_extension" "kibana" {
   name                 = "weu-elk-kibana1"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  virtual_machine_name = "weu-elk-kibana1"
+  virtual_machine_id   = azurerm_virtual_machine.kibana.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
-  depends_on           = ["azurerm_virtual_machine.kibana"]
+  depends_on           = [azurerm_virtual_machine.kibana]
 
 
   settings = <<SETTINGS

@@ -8,7 +8,7 @@ resource "azurerm_network_interface" "logstash" {
   ip_configuration {
     name                          = "weu-elk-logstash1"
     subnet_id                     = "${azurerm_subnet.network.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -19,7 +19,7 @@ resource "azurerm_virtual_machine" "logstash" {
   network_interface_ids = ["${azurerm_network_interface.logstash.id}"]
   vm_size               = "Standard_A2_v2"
   delete_os_disk_on_termination = true
-  depends_on            = ["azurerm_virtual_machine.jumpbox", "azurerm_virtual_machine.elastic"]
+  depends_on            = [azurerm_virtual_machine.jumpbox,azurerm_virtual_machine.elastic]
 
     provisioner "file" {
       source      = "chef"
@@ -62,7 +62,7 @@ resource "azurerm_virtual_machine" "logstash" {
     disable_password_authentication = true
     ssh_keys {
       path     = "/home/${var.ssh_user}/.ssh/authorized_keys"
-      key_data = "${file("${var.ssh_pubkey_location}")}"
+      key_data = tls_private_key.ssh-key.public_key_openssh
     }
   }
 
@@ -73,13 +73,11 @@ resource "azurerm_virtual_machine" "logstash" {
 
 resource "azurerm_virtual_machine_extension" "logstash" {
   name                 = "weu-elk-logstash1"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  virtual_machine_name = "weu-elk-logstash1"
+  virtual_machine_id   = azurerm_virtual_machine.logstash.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
-  depends_on           = ["azurerm_virtual_machine.logstash"]
+  depends_on           = [azurerm_virtual_machine.logstash]
 
   settings = <<SETTINGS
     {

@@ -8,7 +8,7 @@ resource "azurerm_network_interface" "elastic" {
   ip_configuration {
     name                          = "weu-elk-elastic${count.index}"
     subnet_id                     = "${azurerm_subnet.network.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -32,7 +32,7 @@ resource "azurerm_virtual_machine" "elastic" {
   vm_size               = "Standard_A2_v2"
   delete_os_disk_on_termination = true
   count                 = 3
-  depends_on            = ["azurerm_virtual_machine.jumpbox"]
+  depends_on            = [azurerm_virtual_machine.jumpbox]
 
 # Upload Chef recipes
   provisioner "file" {
@@ -76,7 +76,7 @@ resource "azurerm_virtual_machine" "elastic" {
     disable_password_authentication = true
     ssh_keys {
       path     = "/home/${var.ssh_user}/.ssh/authorized_keys"
-      key_data = "${file("${var.ssh_pubkey_location}")}"
+      key_data = tls_private_key.ssh-key.public_key_openssh
     }
   }
 
@@ -89,14 +89,12 @@ resource "azurerm_virtual_machine" "elastic" {
 # remote-exec provisioner. Bootstrap node(s) with Chef.
 resource "azurerm_virtual_machine_extension" "elastic" {
   name                 = "weu-elk-elastic${count.index}"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  virtual_machine_name = "weu-elk-elastic${count.index}"
+  virtual_machine_id = azurerm_virtual_machine.elastic[count.index].id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
   count                = 3
-  depends_on           = ["azurerm_virtual_machine.elastic"]
+  depends_on           = [azurerm_virtual_machine.elastic]
 
   settings = <<SETTINGS
     {

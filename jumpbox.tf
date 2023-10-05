@@ -25,16 +25,20 @@ resource "azurerm_network_interface" "jumpbox" {
   name                = "weu-elk-jumpbox1"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
-  network_security_group_id = "${azurerm_network_security_group.jumpbox.id}"
-
 
   ip_configuration {
     name                          = "weu-elk-jumpbox1"
     subnet_id                     = "${azurerm_subnet.network.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.jumpbox.id}"
 
   }
+}
+
+# Connect the security group to the grafana network interface
+resource "azurerm_network_interface_security_group_association" "jumpbox" {
+  network_interface_id      = azurerm_network_interface.jumpbox.id
+  network_security_group_id = azurerm_network_security_group.jumpbox.id
 }
 
 resource "azurerm_public_ip" "jumpbox" {
@@ -75,7 +79,7 @@ resource "azurerm_virtual_machine" "jumpbox" {
     disable_password_authentication = true
     ssh_keys {
       path     = "/home/${var.ssh_user}/.ssh/authorized_keys"
-      key_data = "${file("${var.ssh_pubkey_location}")}"
+      key_data = tls_private_key.ssh-key.public_key_openssh
     }
   }
 
