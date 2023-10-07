@@ -1,107 +1,14 @@
-# Set up elasticsearch nodes
+# Set up elasticsearch node
 
-# Create Public ip for elastic nodes
+# Create Public ip for elastic dashboard
 resource "azurerm_public_ip" "elastic" {
-  count               = 3
-  name                = "elk-stack-elastic-pip${count.index}"
+  name                         = "elk-stack-elastic-pip"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
-  allocation_method   = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
-
-# Terraform code based on documentation https://www.terraform.io/docs/providers/azurerm/r/virtual_machine.html
-resource "azurerm_network_interface" "elastic" {
-  name                = "weu-elk-elastic${count.index}"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  count               = 3
-  ip_configuration {
-    name                          = "weu-elk-elastic${count.index}"
-    subnet_id                     = "${azurerm_subnet.network.id}"
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = element(azurerm_public_ip.elastic.*.id, count.index)
-  }
-}
-
-# For better availability, create availability set
-resource "azurerm_availability_set" "avset" {
-  name                         = "weu-elk-elastic"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  platform_fault_domain_count  = 2
-  platform_update_domain_count = 2
-  managed                      = true
-}
-
-# Create 3 VMs for elasticsearch nodes
-resource "azurerm_virtual_machine" "elastic" {
-  name                  = "weu-elk-elastic${count.index}"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  network_interface_ids = ["${element(azurerm_network_interface.elastic.*.id, count.index)}"]
-  availability_set_id   = "${azurerm_availability_set.avset.id}"
-  vm_size               = "Standard_A2_v2"
-  delete_os_disk_on_termination = true
-  count                 = 3
-  depends_on            = [azurerm_virtual_machine.jumpbox]
-
-  
-
-# Upload Chef recipes
-  provisioner "file" {
-    source      = "chef"
-    destination = "/tmp/"
-
-    connection {
-      type     = "ssh"
-      user     = "${var.ssh_user}"
-      host = "weu-elk-elastic${count.index}"
-      private_key = tls_private_key.ssh-key.private_key_openssh
-      agent    = false
-    # Using Jumpbox for accessing VMs as I don't have VPN solution for these networks in test subscription
-      bastion_user     = "${var.ssh_user}"
-      bastion_host     = "${data.azurerm_public_ip.jumpbox.ip_address}"
-      bastion_private_key = tls_private_key.ssh-key.private_key_openssh
-      timeout = "6m"
-    }
-  }
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name              = "weu-elk-elastic${count.index}"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-   os_profile {
-     computer_name  = "weu-elk-elastic${count.index}"
-     admin_username = "${var.ssh_user}"
-   }
-
-  os_profile_linux_config {
-    disable_password_authentication = true
-    ssh_keys {
-      path     = "/home/${var.ssh_user}/.ssh/authorized_keys"
-      key_data = tls_private_key.ssh-key.public_key_openssh
-    }
-  }
-
-  tags = {
-    environment = "development"
-  }
-}
-
-####################################################################################
-
-# Network security group for limiting access to grafana public dashboard
+# Network security group for limiting access to elastic public dashboard
 resource "azurerm_network_security_group" "elastic" {
   name                = "elk-elastic"
   location            = "${azurerm_resource_group.main.location}"
@@ -120,11 +27,83 @@ resource "azurerm_network_security_group" "elastic" {
   }
 }
 
-# Connect the security group to the elastic network interfaces
+# Create network interface, attach public ip that we have created
+resource "azurerm_network_interface" "elastic" {
+  name                = "weu-elk-elastic1"
+  location            = "${azurerm_resource_group.main.location}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+
+  ip_configuration {
+    name                          = "weu-elk-elastic1"
+    subnet_id                     = "${azurerm_subnet.network.id}"
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = "${azurerm_public_ip.elastic.id}"
+
+  }
+}
+
+# Connect the security group to the grafana network interface
 resource "azurerm_network_interface_security_group_association" "elastic" {
-  count                     = 3
-  network_interface_id      = element(azurerm_network_interface.elastic.*.id, count.index)
+  network_interface_id      = azurerm_network_interface.elastic.id
   network_security_group_id = azurerm_network_security_group.elastic.id
+}
+
+# Create VM
+resource "azurerm_virtual_machine" "elastic" {
+  name                  = "weu-elk-elastic1"
+  location              = "${azurerm_resource_group.main.location}"
+  resource_group_name   = "${azurerm_resource_group.main.name}"
+  network_interface_ids = ["${azurerm_network_interface.elastic.id}"]
+  vm_size               = "Standard_A2_v2"
+  delete_os_disk_on_termination = true
+  depends_on            = [azurerm_virtual_machine.jumpbox,azurerm_virtual_machine.elastic]
+# Upload Chef cookbook/recipes
+  provisioner "file" {
+    source      = "chef"
+    destination = "/tmp/"
+
+    connection {
+      type     = "ssh"
+      user     = "${var.ssh_user}"
+      host = "weu-elk-elastic1"
+      private_key = tls_private_key.ssh-key.private_key_openssh
+      agent    = false
+      bastion_user     = "${var.ssh_user}"
+      bastion_host     = "${data.azurerm_public_ip.jumpbox.ip_address}"
+      bastion_private_key = tls_private_key.ssh-key.private_key_openssh
+      timeout = "6m"
+    }
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "weu-elk-elastic1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+   os_profile {
+     computer_name  = "weu-elk-elastic1"
+     admin_username = "${var.ssh_user}"
+   }
+
+  os_profile_linux_config {
+    disable_password_authentication = true
+    ssh_keys {
+      path     = "/home/${var.ssh_user}/.ssh/authorized_keys"
+      key_data = tls_private_key.ssh-key.public_key_openssh
+    }
+  }
+
+  tags = {
+    environment = "development"
+  }
 }
 
 ####################################################################################
