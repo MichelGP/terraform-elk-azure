@@ -43,6 +43,12 @@ resource "azurerm_network_interface" "kibana" {
   }
 }
 
+# Connect the security group to the grafana network interface
+resource "azurerm_network_interface_security_group_association" "kibana" {
+  network_interface_id      = azurerm_network_interface.kibana.id
+  network_security_group_id = azurerm_network_security_group.kibana.id
+}
+
 # Create VM
 resource "azurerm_virtual_machine" "kibana" {
   name                  = "weu-elk-kibana1"
