@@ -54,7 +54,7 @@ resource "azurerm_virtual_machine" "elastic" {
   location              = "${azurerm_resource_group.main.location}"
   resource_group_name   = "${azurerm_resource_group.main.name}"
   network_interface_ids = ["${azurerm_network_interface.elastic.id}"]
-  vm_size               = "Standard_A2_v2"
+  vm_size               = "Standard_A1_v2"
   delete_os_disk_on_termination = true
   depends_on            = [azurerm_virtual_machine.jumpbox,azurerm_virtual_machine.elastic]
 # Upload Chef cookbook/recipes
@@ -111,12 +111,11 @@ resource "azurerm_virtual_machine" "elastic" {
 # Using azure custom script extension, same can be achieved using terraform's
 # remote-exec provisioner. Bootstrap node(s) with Chef.
 resource "azurerm_virtual_machine_extension" "elastic" {
-  name                 = "weu-elk-elastic${count.index}"
-  virtual_machine_id = azurerm_virtual_machine.elastic[count.index].id
+  name                 = "weu-elk-elastic1"
+  virtual_machine_id = azurerm_virtual_machine.elastic.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
-  count                = 3
   depends_on           = [azurerm_virtual_machine.elastic]
 
   settings = <<SETTINGS

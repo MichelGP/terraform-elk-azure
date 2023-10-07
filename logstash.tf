@@ -17,7 +17,7 @@ resource "azurerm_virtual_machine" "logstash" {
   location              = "${azurerm_resource_group.main.location}"
   resource_group_name   = "${azurerm_resource_group.main.name}"
   network_interface_ids = ["${azurerm_network_interface.logstash.id}"]
-  vm_size               = "Standard_A2_v2"
+  vm_size               = "Standard_A1_v2"
   delete_os_disk_on_termination = true
   depends_on            = [azurerm_virtual_machine.jumpbox,azurerm_virtual_machine.elastic]
 
