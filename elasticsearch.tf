@@ -1,4 +1,15 @@
 # Set up elasticsearch nodes
+
+# Create Public ip for elastic nodes
+resource "azurerm_public_ip" "elastic" {
+  count               = 3
+  name                = "elk-stack-elastic-pip${count.index}"
+  location            = "${azurerm_resource_group.main.location}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+  allocation_method   = "Dynamic"
+}
+
+
 # Terraform code based on documentation https://www.terraform.io/docs/providers/azurerm/r/virtual_machine.html
 resource "azurerm_network_interface" "elastic" {
   name                = "weu-elk-elastic${count.index}"
@@ -9,6 +20,7 @@ resource "azurerm_network_interface" "elastic" {
     name                          = "weu-elk-elastic${count.index}"
     subnet_id                     = "${azurerm_subnet.network.id}"
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = element(azurerm_public_ip.elastic.*.id, count.index)
   }
 }
 
