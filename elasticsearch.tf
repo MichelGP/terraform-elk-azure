@@ -34,6 +34,8 @@ resource "azurerm_virtual_machine" "elastic" {
   count                 = 3
   depends_on            = [azurerm_virtual_machine.jumpbox]
 
+  
+
 # Upload Chef recipes
   provisioner "file" {
     source      = "chef"
@@ -84,6 +86,36 @@ resource "azurerm_virtual_machine" "elastic" {
     environment = "development"
   }
 }
+
+####################################################################################
+
+# Network security group for limiting access to grafana public dashboard
+resource "azurerm_network_security_group" "elastic" {
+  name                = "elk-elastic"
+  location            = "${azurerm_resource_group.main.location}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+
+  security_rule {
+    name                       = "allowSsh"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "${var.nsgip}"
+    destination_address_prefix = "*"
+  }
+}
+
+# Connect the security group to the elastic network interfaces
+resource "azurerm_network_interface_security_group_association" "elastic" {
+  count                     = 3
+  network_interface_id      = element(azurerm_network_interface.elastic.*.id, count.index)
+  network_security_group_id = azurerm_network_security_group.elastic.id
+}
+
+####################################################################################
 
 # Using azure custom script extension, same can be achieved using terraform's
 # remote-exec provisioner. Bootstrap node(s) with Chef.

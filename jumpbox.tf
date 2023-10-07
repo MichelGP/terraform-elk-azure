@@ -9,7 +9,7 @@ resource "azurerm_network_security_group" "jumpbox" {
   resource_group_name = "${azurerm_resource_group.main.name}"
 
   security_rule {
-    name                       = "allowtcp"
+    name                       = "allowSsh"
     priority                   = 1000
     direction                  = "Inbound"
     access                     = "Allow"
