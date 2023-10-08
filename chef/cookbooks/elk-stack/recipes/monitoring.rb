@@ -22,4 +22,3 @@ template '/etc/telegraf/telegraf.conf' do
   group 'root'
   mode '0644'
   notifies :restart, 'service[telegraf]', :delayed
-end

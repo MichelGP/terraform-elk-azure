@@ -1,5 +1,33 @@
 # Set up Logstash node
 # Terraform code based on documentation https://www.terraform.io/docs/providers/azurerm/r/virtual_machine.html
+
+# Create Public ip for Logstash dashboard
+resource "azurerm_public_ip" "logstash" {
+  name                         = "elk-stack-logstash-pip"
+  location            = "${azurerm_resource_group.main.location}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+  allocation_method = "Dynamic"
+}
+
+# Network security group for limiting access to logstash
+resource "azurerm_network_security_group" "logstash" {
+  name                = "elk-logstash"
+  location            = "${azurerm_resource_group.main.location}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+
+  security_rule {
+    name                       = "allowSsh"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "${var.nsgip}"
+    destination_address_prefix = "*"
+  }
+}
+
 resource "azurerm_network_interface" "logstash" {
   name                = "weu-elk-logstash1"
   location            = "${azurerm_resource_group.main.location}"
@@ -9,7 +37,14 @@ resource "azurerm_network_interface" "logstash" {
     name                          = "weu-elk-logstash1"
     subnet_id                     = "${azurerm_subnet.network.id}"
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = "${azurerm_public_ip.logstash.id}"
   }
+}
+
+# Connect the security group to the logstash network interface
+resource "azurerm_network_interface_security_group_association" "logstash" {
+  network_interface_id      = azurerm_network_interface.logstash.id
+  network_security_group_id = azurerm_network_security_group.logstash.id
 }
 
 resource "azurerm_virtual_machine" "logstash" {
