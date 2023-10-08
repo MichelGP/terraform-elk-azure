@@ -4,8 +4,8 @@ bash 'Install telegraf' do
   user 'root'
   cwd '/tmp'
   code <<-EOH
-  wget https://dl.influxdata.com/telegraf/releases/telegraf_1.6.1-1_amd64.deb
-  sudo dpkg -i telegraf_1.6.1-1_amd64.deb
+  wget https://dl.influxdata.com/telegraf/releases/telegraf_1.28.2-1_amd64.deb
+  sudo dpkg -i telegraf_1.28.2-1_amd64.deb
   EOH
   not_if 'dpkg -l | grep telegraf'
 end
