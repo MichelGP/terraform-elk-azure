@@ -66,7 +66,7 @@ resource "azurerm_virtual_machine" "grafana" {
   location              = "${azurerm_resource_group.main.location}"
   resource_group_name   = "${azurerm_resource_group.main.name}"
   network_interface_ids = ["${azurerm_network_interface.grafana.id}"]
-  vm_size               = "Standard_A1_v2"
+  vm_size               = "Standard_B2s"
   delete_os_disk_on_termination = true
   depends_on            = [azurerm_virtual_machine.jumpbox]
 # Upload Chef cookbook/recipes
@@ -88,8 +88,8 @@ resource "azurerm_virtual_machine" "grafana" {
   }
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 
