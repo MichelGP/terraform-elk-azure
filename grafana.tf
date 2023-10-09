@@ -48,7 +48,7 @@ resource "azurerm_network_interface" "grafana" {
   ip_configuration {
     name                          = "weu-elk-grafana1"
     subnet_id                     = "${azurerm_subnet.network.id}"
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
     public_ip_address_id          = azurerm_public_ip.grafana.id
 
   }
