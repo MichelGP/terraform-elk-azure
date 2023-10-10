@@ -6,7 +6,7 @@ resource "azurerm_public_ip" "grafana" {
   name                         = "elk-stack-grafana-pip"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
-  allocation_method = "Dynamic"
+  allocation_method = "Static"
 }
 
 # Network security group for limiting access to grafana public dashboard
@@ -48,7 +48,7 @@ resource "azurerm_network_interface" "grafana" {
   ip_configuration {
     name                          = "weu-elk-grafana1"
     subnet_id                     = "${azurerm_subnet.network.id}"
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.grafana.id
 
   }

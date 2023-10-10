@@ -10,11 +10,6 @@ bash 'Install telegraf' do
   not_if 'dpkg -l | grep telegraf'
 end
 
-service 'telegraf' do
-  supports status: true, start: true, restart: true, reload: true
-  action [:enable, :start]
-end
-
 # Using telegraf dashboard & conf from https://grafana.com/dashboards/928
 template '/etc/telegraf/telegraf.conf' do
   source 'telegraf.conf.erb'
@@ -22,3 +17,9 @@ template '/etc/telegraf/telegraf.conf' do
   group 'root'
   mode '0644'
   notifies :restart, 'service[telegraf]', :delayed
+end
+
+service 'telegraf' do
+  supports status: true, start: true, restart: true, reload: true
+  action [:enable, :start]
+end
