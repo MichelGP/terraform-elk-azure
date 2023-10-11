@@ -9,5 +9,5 @@ resource "local_file" "AnsibleInventory" {
      jumpbox-ip                 = azurerm_public_ip.jumpbox.ip_address,
    }
  )
- filename = "hosts.cfg"
+ filename = "ansible/hosts"
 }

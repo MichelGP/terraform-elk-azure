@@ -38,7 +38,7 @@ resource "tls_private_key" "ssh-key" {
     provisioner "local-exec" {
     command = <<-EOT
       echo "${tls_private_key.ssh-key.private_key_pem}" > ./ssh.pem
-      chmod 600 ./ssh.pem
+      chmod 600 ./ansible/ssh.pem
     EOT
   }
 }
