@@ -66,7 +66,7 @@ resource "azurerm_virtual_machine" "grafana" {
   location              = "${azurerm_resource_group.main.location}"
   resource_group_name   = "${azurerm_resource_group.main.name}"
   network_interface_ids = ["${azurerm_network_interface.grafana.id}"]
-  vm_size               = "Standard_B2s"
+  vm_size               = "Standard_B1s"
   delete_os_disk_on_termination = true
 
   storage_image_reference {
