@@ -1,0 +1,21 @@
+- name: Copy Logstash Output Configuration
+  ansible.builtin.template:
+    src: 30-elasticsearch-output.conf.j2
+    dest: /etc/logstash/conf.d/30-elasticsearch-output.conf
+    mode: 0640
+    owner: logstash
+    group: logstash
+
+- name: Copy Logstash Input Configuration
+  ansible.builtin.template:
+    src: 02-beats-input.conf.j2
+    dest: /etc/logstash/conf.d/02-beats-input.conf
+    mode: 0640
+    owner: logstash
+    group: logstash
+
+- name: Enable and start logstash service
+  service:
+    name: logstash
+    state: started
+    enabled: yes

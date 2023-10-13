@@ -1,17 +1,14 @@
-[elastic]
-40.114.193.34
-
-[kibana]
-40.114.200.185
+[elasticsearch]
+13.94.239.137
 
 [grafana]
-40.114.206.43
+13.94.237.177
 
 [logstash]
-40.114.205.11
+13.94.237.212
 
 [jumpbox]
-40.114.205.92
+13.94.233.17
 
 [all:vars]
 ansible_user="michel"

@@ -105,18 +105,3 @@ resource "azurerm_virtual_machine" "logstash" {
     environment = "development"
   }
 }
-
-resource "azurerm_virtual_machine_extension" "logstash" {
-  name                 = "weu-elk-logstash1"
-  virtual_machine_id   = azurerm_virtual_machine.logstash.id
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
-  depends_on           = [azurerm_virtual_machine.logstash]
-
-  settings = <<SETTINGS
-    {
-        "commandToExecute": "curl -L https://omnitruck.chef.io/install.sh | sudo bash; chef-solo --chef-license accept-silent -c /tmp/chef/solo.rb -o elk-stack::repo-setup,elk-stack::logstash,elk-stack::monitoring"
-    }
-SETTINGS
-}

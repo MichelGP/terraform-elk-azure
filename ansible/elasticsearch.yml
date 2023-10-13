@@ -1,3 +1,12 @@
 - hosts: elasticsearch
   roles:
-    - common
+    - role: common
+    - role: elasticsearch
+      vars:
+        elasticsearch_network_host: weu-elk-elastic1
+        elasticsearch_cluster_name: michel-development
+        elasticsearch_elastic_password: Not5ecure!
+    - role: kibana
+    - role: logstash
+      vars:
+        elasticsearch_elastic_password: Not5ecure!

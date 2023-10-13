@@ -1,0 +1,28 @@
+---
+- name: Install apt package requirements
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - gpg-agent
+    - curl
+    - procps
+    - net-tools
+    - gnupg
+
+- name: Install Elasticsearch
+  block:
+    - name: Import Elasticsearch GPG Key
+      ansible.builtin.shell: "curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --yes --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg"
+
+    - name: Add Elasticsearch APT Repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main"
+        state: present
+        filename: "elastic-8.x.list"
+
+    - name: Install Elasticsearch package
+      ansible.builtin.apt:
+        name: elasticsearch
+        state: present

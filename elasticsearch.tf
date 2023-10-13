@@ -25,6 +25,17 @@ resource "azurerm_network_security_group" "elastic" {
     source_address_prefix      = "${var.nsgip}"
     destination_address_prefix = "*"
   }
+  security_rule {
+    name                       = "allowKibanaFrontend"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5601"
+    source_address_prefix      = "${var.nsgip}"
+    destination_address_prefix = "*"
+  }
 }
 
 # Create network interface, attach public ip that we have created
@@ -57,23 +68,6 @@ resource "azurerm_virtual_machine" "elastic" {
   vm_size               = "Standard_B2s"
   delete_os_disk_on_termination = true
   depends_on            = [azurerm_virtual_machine.jumpbox,azurerm_virtual_machine.elastic]
-# Upload Chef cookbook/recipes
-  provisioner "file" {
-    source      = "chef"
-    destination = "/tmp/"
-
-    connection {
-      type     = "ssh"
-      user     = "${var.ssh_user}"
-      host = "weu-elk-elastic1"
-      private_key = tls_private_key.ssh-key.private_key_openssh
-      agent    = false
-      bastion_user     = "${var.ssh_user}"
-      bastion_host     = "${data.azurerm_public_ip.jumpbox.ip_address}"
-      bastion_private_key = tls_private_key.ssh-key.private_key_openssh
-      timeout = "6m"
-    }
-  }
   storage_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -104,23 +98,4 @@ resource "azurerm_virtual_machine" "elastic" {
   tags = {
     environment = "development"
   }
-}
-
-####################################################################################
-
-# Using azure custom script extension, same can be achieved using terraform's
-# remote-exec provisioner. Bootstrap node(s) with Chef.
-resource "azurerm_virtual_machine_extension" "elastic" {
-  name                 = "weu-elk-elastic1"
-  virtual_machine_id = azurerm_virtual_machine.elastic.id
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
-  depends_on           = [azurerm_virtual_machine.elastic]
-
-  settings = <<SETTINGS
-    {
-        "commandToExecute": "curl -L https://omnitruck.chef.io/install.sh | sudo bash; chef-solo --chef-license accept-silent -c /tmp/chef/solo.rb -o elk-stack::repo-setup,elk-stack::elastic,elk-stack::monitoring"
-    }
-SETTINGS
 }

@@ -1,0 +1,22 @@
+---
+- name: Enable and start Elasticsearch service
+  service:
+    name: elasticsearch
+    state: started
+    enabled: yes
+
+#- name: Run Elasticsearch Reset Password Command
+#  command: /usr/share/elasticsearch/bin/elasticsearch-reset-password auto -u elastic
+#  args:
+#    stdin: "y\n"  
+#  register: reset_password_output
+
+- name: Run Elasticsearch Reset Password Command
+  command: /usr/share/elasticsearch/bin/elasticsearch-reset-password --interactive --batch -u elastic
+  args:
+    stdin: "{{ elasticsearch_elastic_password }}\n{{ elasticsearch_elastic_password }}\n"  
+  register: reset_password_output
+
+#- name: Print elastic user password
+#  ansible.builtin.debug:
+#    msg: The password for the elastic user is {{ reset_password_output }}

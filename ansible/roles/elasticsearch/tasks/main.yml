@@ -1,0 +1,2 @@
+- include_tasks: elasticsearch-install.yml
+- import_tasks: elasticsearch-configure.yml

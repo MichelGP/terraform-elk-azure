@@ -1,5 +1,11 @@
 ---
 # file: roles/common/tasks/main.yml
+- name: Update apt repo and cache
+  apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+ 
+- name: Upgrade all packages on servers
+  apt: upgrade=dist force_apt_get=yes
+
 - name: NTP must be installed
   become: true
   apt:
@@ -17,6 +23,7 @@
   tags: ntp
 
 - name: NTP must be running
+  become: true
   service:
     name: ntp
     state: started

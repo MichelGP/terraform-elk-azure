@@ -1,9 +1,6 @@
 [elasticsearch]
 ${elastic-ip}
 
-[kibana]
-${kibana-ip}
-
 [grafana]
 ${grafana-ip}
 
