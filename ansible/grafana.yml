@@ -1,3 +1,4 @@
 - hosts: grafana
   roles:
-    - common
+    - role: common
+    - role: grafana

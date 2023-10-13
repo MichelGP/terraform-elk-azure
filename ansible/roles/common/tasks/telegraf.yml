@@ -1,0 +1,19 @@
+- name: Install Telegraf via apt
+  ansible.builtin.apt:
+    name: "telegraf"
+    state: present
+    update_cache: yes
+
+- name: Copy Telegraf config file
+  ansible.builtin.copy:
+    src: telegraf.conf
+    dest: /etc/telegraf/telegraf.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enable and start Telegraf service
+  service:
+    name: telegraf
+    state: started
+    enabled: yes

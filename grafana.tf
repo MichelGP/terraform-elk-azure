@@ -68,24 +68,7 @@ resource "azurerm_virtual_machine" "grafana" {
   network_interface_ids = ["${azurerm_network_interface.grafana.id}"]
   vm_size               = "Standard_B2s"
   delete_os_disk_on_termination = true
-  depends_on            = [azurerm_virtual_machine.jumpbox]
-# Upload Chef cookbook/recipes
-  provisioner "file" {
-    source      = "chef"
-    destination = "/tmp/"
 
-    connection {
-      type     = "ssh"
-      user     = "${var.ssh_user}"
-      host = "weu-elk-grafana1"
-      private_key = tls_private_key.ssh-key.private_key_openssh
-      agent    = false
-      bastion_user     = "${var.ssh_user}"
-      bastion_host     = "${data.azurerm_public_ip.jumpbox.ip_address}"
-      bastion_private_key = tls_private_key.ssh-key.private_key_openssh
-      timeout = "6m"
-    }
-  }
   storage_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -126,13 +109,6 @@ resource "azurerm_virtual_machine_extension" "grafana" {
   type                 = "CustomScript"
   type_handler_version = "2.0"
   depends_on           = [azurerm_virtual_machine.grafana]
-
-
-  settings = <<SETTINGS
-    {
-        "commandToExecute": "curl -L https://omnitruck.chef.io/install.sh | sudo bash; chef-solo --chef-license accept-silent -c /tmp/chef/solo.rb -o elk-stack::grafana,elk-stack::monitoring"
-    }
-SETTINGS
 }
 
   data "azurerm_public_ip" "grafana" {

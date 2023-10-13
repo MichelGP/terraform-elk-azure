@@ -2,10 +2,10 @@
 
 # Create Public ip for elastic dashboard
 resource "azurerm_public_ip" "elastic" {
-  name                         = "elk-stack-elastic-pip"
+  name                = "elk-stack-elastic-pip"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
-  allocation_method = "Static"
+  allocation_method   = "Static"
 }
 
 # Network security group for limiting access to elastic public dashboard
@@ -65,9 +65,9 @@ resource "azurerm_virtual_machine" "elastic" {
   location              = "${azurerm_resource_group.main.location}"
   resource_group_name   = "${azurerm_resource_group.main.name}"
   network_interface_ids = ["${azurerm_network_interface.elastic.id}"]
-  vm_size               = "Standard_B2s"
+  vm_size               = "Standard_B2ms"
   delete_os_disk_on_termination = true
-  depends_on            = [azurerm_virtual_machine.jumpbox,azurerm_virtual_machine.elastic]
+  depends_on            = [azurerm_virtual_machine.elastic]
   storage_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
