@@ -1,7 +1,7 @@
 variable "nsgip" {
  description = "Workstation external IP to allow connections to JB, Kibana, Grafana"
- #default = "37.17.220.27"
- default = "*"
+ default = "37.17.220.27"
+ #default = "*"
 }
 
 variable "ssh_user" {

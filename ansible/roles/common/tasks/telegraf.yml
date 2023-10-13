@@ -15,5 +15,5 @@
 - name: Enable and start Telegraf service
   service:
     name: telegraf
-    state: started
+    state: restarted
     enabled: yes
