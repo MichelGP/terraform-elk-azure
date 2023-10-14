@@ -14,8 +14,27 @@
     owner: logstash
     group: logstash
 
+- name: Ensures /etc/logstash/config/ dir exists
+  file: 
+    path: "/etc/logstash/config/"
+    state: directory
+
+- name: Ensures /etc/logstash/config/certs dir exists
+  file: 
+    path: "/etc/logstash/config/certs"
+    state: directory
+
+- name: Copy Elastic CA certificate to Logstash folder
+  ansible.builtin.copy:
+    src: /etc/elasticsearch/certs/http_ca.crt
+    dest: /etc/logstash/config/certs/http_ca.crt
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0644'
+
 - name: Enable and start logstash service
   service:
     name: logstash
-    state: started
+    state: restarted
     enabled: yes

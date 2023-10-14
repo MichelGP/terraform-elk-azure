@@ -65,7 +65,7 @@ resource "azurerm_virtual_machine" "elastic" {
   location              = "${azurerm_resource_group.main.location}"
   resource_group_name   = "${azurerm_resource_group.main.name}"
   network_interface_ids = ["${azurerm_network_interface.elastic.id}"]
-  vm_size               = "Standard_DS1_v2"
+  vm_size               = "Standard_DS2_v2"
   delete_os_disk_on_termination = true
   depends_on            = [azurerm_virtual_machine.elastic]
   storage_image_reference {
@@ -97,5 +97,20 @@ resource "azurerm_virtual_machine" "elastic" {
 
   tags = {
     environment = "development"
+  }
+}
+
+resource "azurerm_dev_test_global_vm_shutdown_schedule" "elastic" {
+  virtual_machine_id = azurerm_virtual_machine.elastic.id
+  location           = "${azurerm_resource_group.main.location}"
+  enabled            = true
+
+  daily_recurrence_time = "2200"
+  timezone              = "W. Europe Standard Time"
+
+  notification_settings {
+    enabled         = false
+    time_in_minutes = "60"
+    webhook_url     = "https://sample-webhook-url.example.com"
   }
 }

@@ -101,21 +101,22 @@ resource "azurerm_virtual_machine" "grafana" {
   }
 }
 
-# Install chef-solo, start chef bootstrap
-resource "azurerm_virtual_machine_extension" "grafana" {
-  name                 = "weu-elk-grafana1"
-  virtual_machine_id   = azurerm_virtual_machine.grafana.id
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
-  depends_on           = [azurerm_virtual_machine.grafana]
-}
-
   data "azurerm_public_ip" "grafana" {
   name                = "${azurerm_public_ip.grafana.name}"
   resource_group_name = "${azurerm_virtual_machine.grafana.resource_group_name}"
 }
 
-output "grafana_public_ip_address" {
-  value = "${data.azurerm_public_ip.grafana.ip_address}"
+resource "azurerm_dev_test_global_vm_shutdown_schedule" "grafana" {
+  virtual_machine_id = azurerm_virtual_machine.grafana.id
+  location           = "${azurerm_resource_group.main.location}"
+  enabled            = true
+
+  daily_recurrence_time = "2200"
+  timezone              = "W. Europe Standard Time"
+
+  notification_settings {
+    enabled         = false
+    time_in_minutes = "60"
+    webhook_url     = "https://sample-webhook-url.example.com"
+  }
 }

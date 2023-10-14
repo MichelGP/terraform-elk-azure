@@ -1,8 +1,8 @@
 [elasticsearch]
-137.116.195.232
+104.45.12.131
 
 [grafana]
-65.52.134.132
+23.101.72.226
 
 [all:vars]
 ansible_user="michel"
