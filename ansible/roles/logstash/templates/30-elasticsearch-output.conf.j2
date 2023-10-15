@@ -1,9 +1,21 @@
 output {
   elasticsearch {
     hosts => ["https://localhost:9200"]
+    data_stream => "true"
     cacert => '/etc/logstash/config/certs/http_ca.crt'
     ssl => true
     user => 'elastic'
     password => 'Not5ecure!'
   }
 }
+
+# Met API key:
+#output {
+#  elasticsearch {
+#    hosts => ["https://localhost:9200"]
+#    cacert => '/etc/logstash/config/certs/http_ca.crt'
+#    api_key => "K7irLosBCiWK7Yy9scwC:DRma-5KBTsKFSC484czw1A"
+#    ssl => true
+#    data_stream => 'true'
+#  }
+#}

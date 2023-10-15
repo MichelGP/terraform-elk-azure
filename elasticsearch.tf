@@ -36,6 +36,17 @@ resource "azurerm_network_security_group" "elastic" {
     source_address_prefix      = "${var.nsgip}"
     destination_address_prefix = "*"
   }
+  security_rule {
+    name                       = "allowFleet"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8220"
+    source_address_prefix      = "${var.nsgip}"
+    destination_address_prefix = "*"
+  }
 }
 
 # Create network interface, attach public ip that we have created
