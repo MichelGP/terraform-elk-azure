@@ -1,0 +1,41 @@
+- name: influxdb - Generate influxdb self-signed certificate
+  shell: openssl req -batch -x509 -nodes -newkey rsa:2048 -keyout /etc/ssl/influxdb-selfsigned.key -out /etc/ssl/influxdb-selfsigned.crt -days 3650
+
+- name: influxdb - set certificate owner to influxdb user
+  shell: chown influxdb:influxdb /etc/ssl/influx*
+
+- name: influxdb - set certificate permissions (crt)
+  shell: chmod 644 /etc/ssl/influxdb-selfsigned.crt
+
+- name: influxdb - set certificate permissions (key)
+  shell: chmod 600 /etc/ssl/influxdb-selfsigned.key
+
+- name: influxdb - enable https
+  lineinfile:
+    path: /etc/influxdb/influxdb.conf
+    regexp: '  https-enabled = true'
+    insertafter: "  # Determines whether HTTPS is enabled."
+    line: '  https-enabled = true'
+    state: present
+
+- name: influxdb - config cert
+  lineinfile:
+    path: /etc/influxdb/influxdb.conf
+    regexp: '  https-certificate = "/etc/ssl/influxdb-selfsigned.crt"'
+    insertafter: "  # The SSL certificate to use when HTTPS is enabled."
+    line: '  https-certificate = "/etc/ssl/influxdb-selfsigned.crt"'
+    state: present
+
+- name: influxdb - config private key
+  lineinfile:
+    path: /etc/influxdb/influxdb.conf
+    regexp: '  https-private-key = "/etc/ssl/influxdb-selfsigned.key"'
+    insertafter: "  # Use a separate private key location."
+    line: '  https-private-key = "/etc/ssl/influxdb-selfsigned.key"'
+    state: present
+
+- name: influxdb - Restart InfluxDB service
+  service:
+    name: influxdb
+    state: restarted
+    enabled: yes

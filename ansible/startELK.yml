@@ -1,0 +1,16 @@
+---
+- hosts: elasticsearch
+  tasks:
+  - name: stop kibana
+    service:
+      name: kibana
+      state: started
+  - name: stop elasticsearch
+    service:
+      name: elasticsearch
+      state: started
+  - name: stop logstash
+    service:
+      name: logstash
+      state: started
+
