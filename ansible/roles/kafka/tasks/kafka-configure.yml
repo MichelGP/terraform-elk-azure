@@ -1,0 +1,32 @@
+- name: Kafka - Ensure PLAINTEX listener is enabled
+  lineinfile:
+    path: /usr/local/kafka/config/server.properties
+    regexp: '^#?listeners=PLAINTEXT://:9092'
+    line: 'listeners=PLAINTEXT://:9092'
+    state: present
+  notify: restart kafka
+
+- name: Kafka - Enable and start Kafka service
+  service:
+    name: kafka
+    state: restarted
+    enabled: yes
+
+- name: Kafka - Get topics
+  shell: /usr/local/kafka/bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+  register: existing_topics
+
+- debug:
+    msg: "{{ existing_topics }}"
+
+- name: Kafka - Create topic - events
+  shell: /usr/local/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic {{ item }}
+  when: '"{{ item }}" not in existing_topics.stdout'
+  with_items: '{{ topics }}'
+  notify: restart kafka
+ 
+- name: Kafka - Set topic - retention
+  shell: /usr/local/kafka/bin/kafka-configs.sh --bootstrap-server localhost:9092 --alter --entity-type topics --entity-name {{ item }} --add-config retention.ms=86400000
+  when: '"{{ item }}" not in existing_topics.stdout'
+  with_items: '{{ topics }}'
+  notify: restart kafka

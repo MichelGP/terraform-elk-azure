@@ -4,6 +4,7 @@ resource "local_file" "AnsibleInventory" {
    {
      elastic-ip                 = azurerm_public_ip.elastic.ip_address,
      grafana-ip                 = azurerm_public_ip.grafana.ip_address,
+     kafka-ip                   = azurerm_public_ip.kafka.ip_address,
    }
  )
  filename = "ansible/lab"

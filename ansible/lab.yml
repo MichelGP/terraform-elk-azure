@@ -1,3 +1,4 @@
 ---
   - import_playbook: elasticsearch.yml
   - import_playbook: grafana.yml
+  - import_playbook: kafka.yml

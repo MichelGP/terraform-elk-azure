@@ -1,0 +1,22 @@
+- hosts: kafka
+  roles:
+    - role: common
+    - role: kafka
+      vars:
+       topics:
+         - events
+         - syslog
+         - blabla
+         - newtopic
+         - events2
+         - syslog3
+         - blabla4
+         - newtopi5c
+         - events6
+         - syslog7
+         - blabla8
+         - newtopi9c
+         - events10
+         - syslog10
+         - blabla23
+         - newtopic455

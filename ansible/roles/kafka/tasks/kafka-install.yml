@@ -1,0 +1,40 @@
+---
+- name: Kafka - Install package requirements
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - default-jdk
+
+- name: Kafka - Copy Kafka Systemd unit file
+  ansible.builtin.copy:
+    src: kafka.service
+    dest: /etc/systemd/system/kafka.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Kafka - Copy Zookeeper Systemd unit file
+  ansible.builtin.copy:
+    src: zookeeper.service
+    dest: /etc/systemd/system/zookeeper.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Kafka - Force systemd to reread configs (2.4 and above)
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Kafka - Enable and start Zookeeper service
+  service:
+    name: zookeeper
+    state: started
+    enabled: yes
+
+- name: Kafka - Enable and start Kafka service
+  service:
+    name: kafka
+    state: started
+    enabled: yes
